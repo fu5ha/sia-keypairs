@@ -1,3 +1,4 @@
+/* global describe, it */
 const expect = require('chai').expect
 const keypairs = require('../lib/keypairs')
 const encoding = require('../lib/encoding')

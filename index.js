@@ -4,4 +4,4 @@
 
 'use strict'
 
-module.exports = require('./lib/keypairs');
+module.exports = require('./lib/keypairs')

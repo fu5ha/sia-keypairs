@@ -26,10 +26,8 @@
     "test": "mocha"
   },
   "standard": {
-    "globals": [
-      "describe",
-      "it",
-      "expect"
+    "ignore": [
+      "/lib/"
     ]
   }
 }

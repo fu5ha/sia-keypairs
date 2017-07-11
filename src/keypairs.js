@@ -1,3 +1,4 @@
+// @flow
 import assert from 'assert'
 import hashjs from 'hash.js'
 import brorand from 'brorand'
@@ -5,70 +6,73 @@ import elliptic from 'elliptic'
 import MerkleTree from 'mtree'
 import {blake2b} from 'blakejs'
 import { signatureEd25519 } from './helpers'
-import encoding from './encoding'
+import {EncodePublicKey, EncodeUInt32, EncodeUInt64, Encode} from './encoding'
+import type {EncodeItem} from './encoding'
 const Ed25519 = elliptic.eddsa('ed25519')
 
-function sha512 (m) {
-  return hashjs.sha512().update(m).digest().slice(0, 32)
+export type KeyPair = {
+  privateKey: Buffer,
+  publicKey: Buffer
 }
 
-export function hashAll () {
-  assert(arguments.length >= 2, 'Must pass two or more items')
-  const items = [].slice.call(arguments)
-  return items.reduce((encItems, item) => Buffer.concat([encItems, encoding.Marshal(item)]), null)
+export type UnlockConditions = {
+  timelock: ?number,
+  publicKeys: Array<SiaPublicKey>,
+  signaturesRequired: number
 }
 
-export function KeyPair (prv, pub) {
-  this.private = prv
-  this.public = pub
+export type SiaPublicKey = {
+  algorithm: Buffer,
+  key: Buffer
 }
 
-export function UnlockConditions (tl, keys, sigsRequired) {
-  this.timelock = tl
-  this.publicKeys = keys
-  this.signaturesRequired = sigsRequired
+export function hashAll (items: Array<EncodeItem>) {
+  return items.reduce((encItems, item) => Buffer.concat([encItems, Encode(item)]), Buffer.from([]))
 }
 
-UnlockConditions.prototype.generateLeaves = function () {
+export function generateLeaves (conditions: UnlockConditions): Array<Buffer> {
   let leaves = []
-  leaves.push(encoding.Marshal(this.timelock, 'uint64'))
-  this.publicKeys.forEach(function (pk) {
-    leaves.push(encoding.Marshal(pk))
-  }, this)
-  leaves.push(encoding.Marshal(this.signaturesRequired, 'uint64'))
+  if (conditions.timelock) {
+    leaves.push(EncodeUInt64(conditions.timelock))
+  }
+  conditions.publicKeys.forEach((pk) => {
+    leaves.push(EncodePublicKey(pk))
+  })
+  leaves.push(EncodeUInt64(conditions.signaturesRequired))
+  return leaves
 }
 
-export function SiaPublicKey (alg, pk) {
-  this.algorithm = alg
-  this.key = pk
+export function fromEd25519PublicKey (pk: Buffer): SiaPublicKey {
+  return {
+    algorithm: signatureEd25519,
+    key: pk
+  }
 }
 
-SiaPublicKey.prototype.fromEd25519PublicKey = function (pk) {
-  return new SiaPublicKey(signatureEd25519, pk)
+export function fromPrivateKey (prvk: Buffer): SiaPublicKey {
+  return {
+    algorithm: signatureEd25519,
+    key: prvk.slice(32)
+  }
 }
 
-export function fromPrivateKey (prvk) {
-  return new SiaPublicKey(signatureEd25519, prvk.slice(32))
-}
-
-export function generateKeypair (entropy) {
+export function generateKeypair (entropy: Buffer) {
   assert(!entropy || entropy.length >= 32, 'Entropy must be at least 32 bytes')
   entropy = entropy ? entropy.slice(0, 32) : brorand(32)
   return generateKeypairDeterministic(entropy)
 }
 
-export function generateKeypairDeterministic (entropy) {
+export function generateKeypairDeterministic (entropy: Buffer): KeyPair {
   assert(entropy.length === 32, 'Entropy length must be exactly 32 bytes')
-  const rawPrivateKey = sha512(entropy)
+  const rawPrivateKey = blake2b(entropy)
   const kp = Ed25519.keyFromSecret(rawPrivateKey)
   const publicKey = Buffer.from(kp.pubBytes())
   const privateKey = Buffer.from(kp.privBytes().concat(publicKey))
-  return new KeyPair(privateKey, publicKey)
+  return {privateKey, publicKey}
 }
 
-export function getUnlockHash (conditions) {
-  assert(conditions instanceof UnlockConditions, 'invalid unlock conditions')
-  const leaves = conditions.generateLeaves()
+export function getUnlockHash (conditions: UnlockConditions) {
+  const leaves = generateLeaves(conditions)
   const tree = new MerkleTree(leaves, blake2b)
   return tree.root()
 }

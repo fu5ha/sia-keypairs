@@ -1,0 +1,27 @@
+{
+  "name": "sia-keypairs",
+  "version": "0.1.0",
+  "description": "An open-source JavaScript implementation of Siacoin keypair and address generation.",
+  "main": "index.js",
+  "repository": "https://github.com/termhn/sia-keypairs",
+  "author": "Gray Olson <gray@grayolson.com>",
+  "license": "MIT",
+  "dependencies": {
+    "blakejs": "^1.1.0",
+    "brorand": "^1.1.0",
+    "buffer": "^5.0.6",
+    "elliptic": "^6.4.0",
+    "eslint": "^4.2.0",
+    "mtree": "^1.0.0",
+    "sha512": "^0.0.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.25.0",
+    "babel-eslint": "^7.2.3",
+    "babel-preset-env": "^1.6.0"
+  },
+  "scripts": {
+    "build": "babel src -d lib"
+  }
+}

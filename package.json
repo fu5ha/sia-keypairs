@@ -11,17 +11,25 @@
     "brorand": "^1.1.0",
     "buffer": "^5.0.6",
     "elliptic": "^6.4.0",
-    "eslint": "^4.2.0",
-    "mtree": "^1.0.0",
-    "sha512": "^0.0.1"
+    "mtree": "^1.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-core": "^6.25.0",
-    "babel-eslint": "^7.2.3",
-    "babel-preset-env": "^1.6.0"
+    "babel-preset-env": "^1.6.0",
+    "chai": "*",
+    "mocha": "*",
+    "standard": "^10.0.2"
   },
   "scripts": {
-    "build": "babel src -d lib"
+    "build": "babel src -d lib",
+    "test": "mocha"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it",
+      "expect"
+    ]
   }
 }

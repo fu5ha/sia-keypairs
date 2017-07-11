@@ -1,16 +1,16 @@
 // @flow
 import type {SiaPublicKey} from './keypairs'
 
+export type EncodeType = 'publickey' |
+                         'uint32' |
+                         'uint64'
+
 export type EncodeItem = {
   val: any,
   type: EncodeType
 }
 
-export type EncodeType =  'publickey' |
-                          'uint32'    |
-                          'uint64'
-
-export function Encode(item: EncodeItem): Buffer {
+export function Encode (item: EncodeItem): Buffer {
   const {val, type} = item
   switch (type) {
     case 'publickey':
@@ -20,7 +20,7 @@ export function Encode(item: EncodeItem): Buffer {
     case 'uint32':
       return EncodeUInt32(val)
     default:
-      throw new Error("tried to encode not recognized type")
+      throw new Error('tried to encode not recognized type')
   }
 }
 export function EncodePublicKey (val: SiaPublicKey): Buffer {

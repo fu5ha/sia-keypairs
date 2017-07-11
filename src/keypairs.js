@@ -1,12 +1,11 @@
 // @flow
 import assert from 'assert'
-import hashjs from 'hash.js'
 import brorand from 'brorand'
 import elliptic from 'elliptic'
 import MerkleTree from 'mtree'
 import {blake2b} from 'blakejs'
 import { signatureEd25519 } from './helpers'
-import {EncodePublicKey, EncodeUInt32, EncodeUInt64, Encode} from './encoding'
+import {EncodePublicKey, EncodeUInt64, Encode} from './encoding'
 import type {EncodeItem} from './encoding'
 const Ed25519 = elliptic.eddsa('ed25519')
 
@@ -15,15 +14,15 @@ export type KeyPair = {
   publicKey: Buffer
 }
 
+export type SiaPublicKey = {
+  algorithm: Buffer,
+  key: Buffer
+}
+
 export type UnlockConditions = {
   timelock: ?number,
   publicKeys: Array<SiaPublicKey>,
   signaturesRequired: number
-}
-
-export type SiaPublicKey = {
-  algorithm: Buffer,
-  key: Buffer
 }
 
 export function hashAll (items: Array<EncodeItem>) {

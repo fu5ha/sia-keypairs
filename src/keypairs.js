@@ -25,14 +25,14 @@ export type UnlockConditions = {
   signaturesRequired: number
 }
 
-function blake2bHash (input: Buffer, outlen: number = 32): Buffer {
+export function hashBlake2b (input: Buffer, outlen: number = 32): Buffer {
   const view = Uint8Array.from(input)
   let ctx = blake2bInit(outlen, view)
   return Buffer.from(blake2bFinal(ctx))
 }
 
 export function hashAll (items: Array<EncodeItem>) {
-  return items.reduce((encItems, item) => Buffer.concat([encItems, Encode(item)]), Buffer.from([]))
+  return hashBlake2b(items.reduce((encItems, item) => Buffer.concat([encItems, Encode(item)]), Buffer.from([])))
 }
 
 export function generateLeaves (conditions: UnlockConditions): Array<Buffer> {
@@ -69,15 +69,15 @@ export function generateKeypair (entropy: ?Buffer): ExtendedKeyPair {
 
 export function generateKeypairDeterministic (entropy: Buffer): ExtendedKeyPair {
   assert(entropy.length === 32, 'Entropy length must be exactly 32 bytes')
-  const rawPrivateKey = blake2bHash(entropy).toString('hex')
+  const rawPrivateKey = hashBlake2b(entropy).toString('hex')
   const kp = Ed25519.keyFromSecret(rawPrivateKey)
   const publicKey = Buffer.from(kp.pubBytes())
   const privateKey = Buffer.concat([Buffer.from(kp.privBytes()), publicKey])
   return {privateKey, publicKey}
 }
 
-export function getUnlockHash (conditions: UnlockConditions) {
+export function getUnlockHash (conditions: UnlockConditions): string {
   const leaves = generateLeaves(conditions)
-  const tree = new MerkleTree(leaves, blake2bHash)
-  return tree.root()
+  const tree = new MerkleTree(leaves, hashBlake2b)
+  return Buffer.from(tree.root()).toString('hex')
 }

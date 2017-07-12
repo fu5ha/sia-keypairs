@@ -21,7 +21,7 @@
     "babel-preset-env": "^1.6.0",
     "chai": "*",
     "eslint-plugin-flowtype": "^2.35.0",
-    "flow": "^0.2.3",
+    "flow-bin": "^0.49.1",
     "mocha": "*",
     "standard": "^10.0.2"
   },

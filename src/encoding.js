@@ -6,23 +6,42 @@ export type EncodeType = 'publickey' |
                          'uint64'
 
 export type EncodeItem = {
-  val: any,
+  val: number | SiaPublicKey,
   type: EncodeType
 }
 
 export function Encode (item: EncodeItem): Buffer {
   const {val, type} = item
+  switch (typeof val) {
+    case 'object':
+      return EncodeObject(val, type)
+    case 'number':
+      return EncodeNumber(val, type)
+    default:
+      throw new Error('tried to encode not recognized type')
+  }
+}
+
+export function EncodeObject (val: Object, type: string): Buffer {
   switch (type) {
     case 'publickey':
       return EncodePublicKey(val)
+    default:
+      throw new Error('tried to encode not recognized object type')
+  }
+}
+
+export function EncodeNumber (val: number, type: string): Buffer {
+  switch (type) {
     case 'uint64':
       return EncodeUInt64(val)
     case 'uint32':
       return EncodeUInt32(val)
     default:
-      throw new Error('tried to encode not recognized type')
+      throw new Error('tried to encode not recognized number type')
   }
 }
+
 export function EncodePublicKey (val: SiaPublicKey): Buffer {
   return Buffer.concat([val.algorithm, val.key])
 }

@@ -1,17 +1,16 @@
 // @flow
 import assert from 'assert'
 import brorand from 'brorand'
-import elliptic from 'elliptic'
+import nacl from 'tweetnacl'
 import MerkleTree from 'mtree'
-import {blake2bInit, blake2bFinal} from 'blakejs'
+import { blake2b } from 'blakejs'
 import { signatureEd25519 } from './helpers'
-import {EncodePublicKey, EncodeUInt64, Encode} from './encoding'
-import type {EncodeItem} from './encoding'
-const Ed25519 = elliptic.eddsa('ed25519')
+import { EncodePublicKey, EncodeUInt64, Encode } from './encoding'
+import type { EncodeItem } from './encoding'
 
-export type ExtendedKeyPair = {
-  privateKey: Buffer,
-  publicKey: Buffer
+export type KeyPair = {
+  secretKey: Uint8Array,
+  publicKey: Uint8Array
 }
 
 export type SiaPublicKey = {
@@ -27,12 +26,11 @@ export type UnlockConditions = {
 
 export function hashBlake2b (input: Buffer, outlen: number = 32): Buffer {
   const view = Uint8Array.from(input)
-  let ctx = blake2bInit(outlen, view)
-  return Buffer.from(blake2bFinal(ctx))
+  return Buffer.from(blake2b(view, null, 32))
 }
 
-export function hashAll (items: Array<EncodeItem>) {
-  return hashBlake2b(items.reduce((encItems, item) => Buffer.concat([encItems, Encode(item)]), Buffer.from([])))
+export function hashAll (items: Array<EncodeItem>): Buffer {
+  return hashBlake2b(items.reduce((encodedItems, item) => Buffer.concat([encodedItems, Encode(item)]), Buffer.from([])))
 }
 
 export function generateLeaves (conditions: UnlockConditions): Array<Buffer> {
@@ -61,19 +59,16 @@ export function fromPrivateKey (prvk: Buffer): SiaPublicKey {
   }
 }
 
-export function generateKeypair (entropy: ?Buffer): ExtendedKeyPair {
+export function generateKeypair (entropy: ?Buffer): KeyPair {
   assert(!entropy || entropy.length >= 32, 'Entropy must be at least 32 bytes')
   entropy = entropy ? entropy.slice(0, 32) : Buffer.from(brorand(32))
   return generateKeypairDeterministic(entropy)
 }
 
-export function generateKeypairDeterministic (entropy: Buffer): ExtendedKeyPair {
+export function generateKeypairDeterministic (entropy: Buffer): KeyPair {
   assert(entropy.length === 32, 'Entropy length must be exactly 32 bytes')
-  const rawPrivateKey = hashBlake2b(entropy).toString('hex')
-  const kp = Ed25519.keyFromSecret(rawPrivateKey)
-  const publicKey = Buffer.from(kp.pubBytes())
-  const privateKey = Buffer.concat([Buffer.from(kp.privBytes()), publicKey])
-  return {privateKey, publicKey}
+  const kp = nacl.sign.keyPair.fromSeed(Uint8Array.from(entropy))
+  return {secretKey: Buffer.from(kp.secretKey), publicKey: Buffer.from(kp.publicKey)}
 }
 
 export function getUnlockHash (conditions: UnlockConditions): string {

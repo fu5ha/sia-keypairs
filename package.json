@@ -10,8 +10,8 @@
     "blakejs": "^1.1.0",
     "brorand": "^1.1.0",
     "buffer": "^5.0.6",
-    "elliptic": "^6.4.0",
-    "mtree": "^1.0.0"
+    "mtree": "^1.0.0",
+    "tweetnacl": "^1.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

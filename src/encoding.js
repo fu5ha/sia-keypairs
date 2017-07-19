@@ -3,10 +3,11 @@ import type {SiaPublicKey} from './keypairs'
 
 export type EncodeType = 'publickey' |
                          'uint32' |
-                         'uint64'
+                         'uint64' |
+                         'buffer'
 
 export type EncodeItem = {
-  val: number | SiaPublicKey,
+  val: number | SiaPublicKey | Buffer,
   type: EncodeType
 }
 
@@ -18,7 +19,7 @@ export function Encode (item: EncodeItem): Buffer {
     case 'number':
       return EncodeNumber(val, type)
     default:
-      throw new Error('tried to encode not recognized type')
+      throw new Error('tried to encode not recognized type (' + typeof val + ')')
   }
 }
 
@@ -26,8 +27,10 @@ export function EncodeObject (val: Object, type: string): Buffer {
   switch (type) {
     case 'publickey':
       return EncodePublicKey(val)
+    case 'buffer':
+      return val
     default:
-      throw new Error('tried to encode not recognized object type')
+      throw new Error('tried to encode not recognized object type (' + type + ')')
   }
 }
 
